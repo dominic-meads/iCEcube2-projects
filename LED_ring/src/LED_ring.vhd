@@ -15,6 +15,7 @@ architecture sim of LED_ring_tb is
   signal o_D2 : std_logic;
   signal o_D3 : std_logic;
   signal o_D4 : std_logic;
+  signal o_D5 : std_logic:
 
 begin 
 
@@ -24,7 +25,8 @@ begin
     o_D1 => o_D1,
     o_D2 => o_D2,
     o_D3 => o_D3,
-    o_D4 => o_D4
+    o_D4 => o_D4,
+    o_D5 => o_D5
     );
     
   CLK_PROC : process
