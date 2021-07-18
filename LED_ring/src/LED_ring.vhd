@@ -19,7 +19,7 @@ end LED_ring;
 architecture rtl of LED_ring is 
 
   signal r_clk_counter : unsigned(19 downto 0) := (others => '0');
-  signal r_D_counter : unsigned(1 downto 0) := "00";
+  signal r_D_counter : unsigned(2 downto 0) := "000";
 
 begin 
 
@@ -40,19 +40,19 @@ begin
   begin
     if rising_edge(i_clk) then 
       if r_clk_counter = x"F4240" then 
-        if r_D_counter < "11" then 
+        if r_D_counter < "111" then 
           r_D_counter <= r_D_counter + 1;
         else 
-          r_D_counter <= "00";
+          r_D_counter <= "000";
         end if;
       end if;
     end if;
   end process;
         
-  o_D1 <= '1' when r_D_counter = 0 else '0';
-  o_D2 <= '1' when r_D_counter = 1 else '0';
-  o_D3 <= '1' when r_D_counter = 2 else '0';
-  o_D4 <= '1' when r_D_counter = 3 else '0';
-  o_D5 <= '0';
+  o_D1 <= '1' when r_D_counter = "000" else '1' when r_D_counter = "100" else '0';
+  o_D2 <= '1' when r_D_counter = "001" else '1' when r_D_counter = "101" else '0';
+  o_D3 <= '1' when r_D_counter = "010" else '1' when r_D_counter = "110" else '0';
+  o_D4 <= '1' when r_D_counter = "011" else '1' when r_D_counter = "111" else '0';
+  o_D5 <= '1' when r_D_counter <= "011" else '0';
   
 end architecture;
