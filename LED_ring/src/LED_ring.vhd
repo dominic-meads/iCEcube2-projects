@@ -1,44 +1,58 @@
+-- blinks LEDS on iCEstick in ring pattern
+
 library IEEE;
 use IEEE.std_logic_1164.all;
+use IEEE.numeric_std.all;
 
 
-entity LED_ring_tb is 
-end LED_ring_tb;
+entity LED_ring is 
+  port (
+    i_clk : in std_logic;
+    o_D1 : out std_logic;
+    o_D2 : out std_logic;
+    o_D3 : out std_logic;
+    o_D4 : out std_logic;
+    o_D5 : out std_logic
+    );
+end LED_ring;
 
-architecture sim of LED_ring_tb is 
+architecture rtl of LED_ring is 
 
-  constant clk_hz : integer := 12e6;
-  constant clk_period : time := 1 sec / clk_hz;
-  
-  signal i_clk : std_logic := '1';
-  signal o_D1 : std_logic;
-  signal o_D2 : std_logic;
-  signal o_D3 : std_logic;
-  signal o_D4 : std_logic;
-  signal o_D5 : std_logic:
+  signal r_clk_counter : unsigned(19 downto 0) := (others => '0');
+  signal r_D_counter : unsigned(1 downto 0) := "00";
 
 begin 
 
-  DUT : entity work.LED_ring(rtl)
-  port map (
-    i_clk => i_clk,
-    o_D1 => o_D1,
-    o_D2 => o_D2,
-    o_D3 => o_D3,
-    o_D4 => o_D4,
-    o_D5 => o_D5
-    );
-    
-  CLK_PROC : process
+  -- input clk is 12 MHz so 1,000,000 counts is 0.08333 sec
+  TIME_COUNTER_PROC : process(i_clk)
   begin 
-    wait for clk_period / 2;
-    i_clk <= not i_clk;
+    if rising_edge(i_clk) then 
+      if r_clk_counter < x"F4240" then 
+        r_clk_counter <= r_clk_counter + 1;
+      else 
+        r_clk_counter <= (others => '0');
+      end if;
+    end if;
   end process;
   
-  STIM_PROC : process 
-  begin 
-    wait for 3 sec;
-    wait;
+  -- counts up once every 0.08333 sec
+  D_COUNTER_PROC : process(i_clk, r_clk_counter)
+  begin
+    if rising_edge(i_clk) then 
+      if r_clk_counter = x"F4240" then 
+        if r_D_counter < "11" then 
+          r_D_counter <= r_D_counter + 1;
+        else 
+          r_D_counter <= "00";
+        end if;
+      end if;
+    end if;
   end process;
-
+        
+  o_D1 <= '1' when r_D_counter = 0 else '0';
+  o_D2 <= '1' when r_D_counter = 1 else '0';
+  o_D3 <= '1' when r_D_counter = 2 else '0';
+  o_D4 <= '1' when r_D_counter = 3 else '0';
+  o_D5 <= '0';
+  
 end architecture;
