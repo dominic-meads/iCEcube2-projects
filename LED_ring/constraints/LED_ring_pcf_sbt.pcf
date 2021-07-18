@@ -18,3 +18,4 @@ set_io o_D3 97
 set_io i_clk 21
 set_io o_D2 98
 set_io o_D4 96
+set_io o_D5 95
