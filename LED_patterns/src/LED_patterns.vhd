@@ -60,18 +60,15 @@ begin
         r_change_pattern <= '0';
         r_clk_cntr <= 0;
       else 
-        if clk_cntr < 24e6 then 
-          r_clk_cntr <= clk_cntr + 1;
+        if r_clk_cntr < 24e6 then 
+          r_clk_cntr <= r_clk_cntr + 1;
+          r_change_pattern <= '0';
         else 
-          clk_cntr <= 0;
+          r_clk_cntr <= 0;
+          r_change_pattern <= '1';
         end if;
       end if;
     end if;
   end process;
-  
-
-
-
-end architecture;
     
     
