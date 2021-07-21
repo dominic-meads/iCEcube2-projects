@@ -34,7 +34,6 @@ architecture sim of LED_patterns_tb is
   
   -- DUT signals 
   signal i_clk  : std_logic := '0';  
-  signal i_rst  : std_logic;
   signal o_LEDs : std_logic_vector(4 downto 0);
 
 begin
@@ -42,7 +41,6 @@ begin
   DUT : entity work.LED_patterns(rtl)
   port map (
     i_clk => i_clk,
-    i_rst => i_rst,
     o_LEDs => o_LEDs
   );
 
@@ -54,7 +52,7 @@ begin
   
   STIM_PROC : process 
   begin 
-    wait for 3 sec;
+    wait for 500 ms;
     wait;
   end process;
 
