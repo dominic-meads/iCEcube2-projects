@@ -34,13 +34,14 @@ end LED_patterns;
 architecture rtl of LED_patterns is
 
   -- enables for different patterns/counters
-  signal r_patt1_cntr_en : std_logic := '0';
+  signal r_patt1_cntr_en : std_logic := '1';
   signal r_patt2_cntr_en : std_logic := '0';
   signal r_patt3_cntr_en : std_logic := '0';
   signal r_patt4_cntr_en : std_logic := '0';
   
   -- pattern counters 
   signal r_patt1_cntr : integer range 0 to 750e3 := 0;
+  signal r_patt1_alt_cntr : integer range 0 to 3 := 0;
   
   -- indicates if pattern should be changed
   signal r_change_pattern : std_logic := '0';
@@ -70,7 +71,7 @@ begin
   -- activate the "r_change_pattern" flag every 2 seconds
   r_change_pattern <= '1' when r_clk_cntr = 24e6 else '0';
   
-  -- pattern 1 counter switches LEDs every 62.5 ms
+  -- pattern 1 counter keeps each LED on in pattern 1 for 62.5 ms
   PATT1_CNTR_PROC : process(i_clk, r_patt1_cntr_en)
   begin 
     if rising_edge(i_clk) then 
@@ -86,6 +87,24 @@ begin
     end if;
   end process;
   
+    -- pattern 1 alt counter signals when to switch LEDs every 62.5 ms
+  PATT1_ALT_CNTR_PROC : process(i_clk, r_patt1_cntr_en, r_patt1_cntr)
+  begin 
+    if rising_edge(i_clk) then 
+      if r_patt1_cntr_en = '0' then 
+        r_patt1_alt_cntr <= 0;
+      else 
+        if r_patt1_cntr = 750e3 then 
+          if r_patt1_alt_cntr < 3 then 
+            r_patt1_alt_cntr <= r_patt1_alt_cntr + 1;
+          else 
+            r_patt1_alt_cntr <= 0;
+          end if;
+        end if;
+      end if;
+    end if;
+  end process;
+  
   
       
       
@@ -94,3 +113,5 @@ begin
 
 
 end architecture;
+    
+    
