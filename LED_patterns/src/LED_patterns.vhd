@@ -34,10 +34,10 @@ end LED_patterns;
 architecture rtl of LED_patterns is
 
   -- enables for different patterns/counters
-  signal r_patt1_cntr_en : std_logic := '1';
-  signal r_patt2_cntr_en : std_logic := '0';
-  signal r_patt3_cntr_en : std_logic := '0';
-  signal r_patt4_cntr_en : std_logic := '0';
+  signal r_patt1_en : std_logic := '1';
+  signal r_patt2_en : std_logic := '0';
+  signal r_patt3_en : std_logic := '0';
+  signal r_patt4_en : std_logic := '0';
   
   -- pattern counters 
   signal r_patt1_cntr : integer range 0 to 750e3 := 0;
@@ -49,7 +49,7 @@ architecture rtl of LED_patterns is
   signal r_clk_cntr : integer range 0 to 24e6 := 0;
  
   -- FSM
-  type t_state is (RST, PATT1, PATT2, PATT3, PATT4);
+  type t_state is (PATT1, PATT2, PATT3, PATT4);
   signal STATE : t_state;
 
 
@@ -71,11 +71,13 @@ begin
   -- activate the "r_change_pattern" flag every 2 seconds
   r_change_pattern <= '1' when r_clk_cntr = 24e6 else '0';
   
+  --------------------------------------------------------------------- POSSIBLY ADD PROCEDURES HERE FOR COUNTERS INSTEAD OF PROCESSES?
+  
   -- pattern 1 counter keeps each LED on in pattern 1 for 62.5 ms
-  PATT1_CNTR_PROC : process(i_clk, r_patt1_cntr_en)
+  PATT1_CNTR_PROC : process(i_clk)
   begin 
     if rising_edge(i_clk) then 
-      if r_patt1_cntr_en = '0' then 
+      if r_patt1_en = '0' then 
         r_patt1_cntr <= 0;
       else 
         if r_patt1_cntr < 750e3 then 
@@ -88,10 +90,10 @@ begin
   end process;
   
     -- pattern 1 alt counter signals when to switch LEDs every 62.5 ms
-  PATT1_ALT_CNTR_PROC : process(i_clk, r_patt1_cntr_en, r_patt1_cntr)
+  PATT1_ALT_CNTR_PROC : process(i_clk)
   begin 
     if rising_edge(i_clk) then 
-      if r_patt1_cntr_en = '0' then 
+      if r_patt1_en = '0' then 
         r_patt1_alt_cntr <= 0;
       else 
         if r_patt1_cntr = 750e3 then 
@@ -105,6 +107,34 @@ begin
     end if;
   end process;
   
+  FSM_PROC : process(i_clk) 
+  begin
+    if rising_edge(i_clk) then 
+      case STATE is 
+        when PATT1 =>
+          if r_change_pattern = '1' then 
+            STATE <= PATT2;
+            r_patt1_en <= '0';
+          else 
+            STATE <= PATT1;
+            r_patt1_en <= '1';
+          end if;
+        
+        when PATT2 => 
+          if r_change_pattern = '1' then 
+            STATE <= PATT1;  -- change to PATT3
+            r_patt2_en <= '0';
+          else 
+            STATE <= PATT2;
+            r_patt2_en <= '1';
+          end if;   
+      end case;
+    end if;
+  end process;
+  
+  o_LEDS <= 
+  
+          
   
       
       
@@ -113,5 +143,3 @@ begin
 
 
 end architecture;
-    
-    
