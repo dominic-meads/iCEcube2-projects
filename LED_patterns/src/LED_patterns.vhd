@@ -122,17 +122,45 @@ begin
         
         when PATT2 => 
           if r_change_pattern = '1' then 
-            STATE <= PATT1;  -- change to PATT3
+            STATE <= PATT3; 
             r_patt2_en <= '0';
           else 
             STATE <= PATT2;
             r_patt2_en <= '1';
-          end if;   
+          end if;
+        
+        when PATT3 => 
+          if r_change_pattern = '1' then 
+            STATE <= PATT4;  
+            r_patt3_en <= '0';
+          else 
+            STATE <= PATT3;
+            r_patt3_en <= '1';
+          end if;
+        
+        when PATT4 => 
+          if r_change_pattern = '1' then 
+            STATE <= PATT1; 
+            r_patt4_en <= '0';
+          else 
+            STATE <= PATT4;
+            r_patt4_en <= '1';
+          end if;
+        
       end case;
     end if;
   end process;
   
-  o_LEDS <= 
+  PATT_DECODE_PROC : process(r_patt1_en, r_patt2_en, r_patt3_en, r_patt4_en)
+    variable r_patt_en : std_logic_vector(3 downto 0);
+  begin
+    r_patt_en := r_patt1_en & r_patt2_en & r_patt3_en & r_patt4_en;
+    if r_patt_en = "1000" then 
+      o_LEDs <= "11111";
+    else 
+      o_LEDs <= "00000";
+    end if;
+  end process;
   
           
   
@@ -143,3 +171,5 @@ begin
 
 
 end architecture;
+    
+    
