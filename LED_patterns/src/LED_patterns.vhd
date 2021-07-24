@@ -40,14 +40,14 @@ architecture rtl of LED_patterns is
   signal r_patt4_en : std_logic := '0';
   
   -- pattern counters 
-  signal r_patt1_cntr     : integer range 0 to 12e5 := 0;
-  signal r_patt1_alt_cntr : integer range 0 to 3    := 0; 
-  signal r_patt2_cntr     : integer range 0 to 10e5 := 0;
-  signal r_patt2_alt_cntr : integer range 0 to 1    := 0;
+  signal r_patt1_cntr     : integer range 0 to 12e5  := 0;
+  signal r_patt1_alt_cntr : integer range 0 to 3     := 0; 
+  signal r_patt2_cntr     : integer range 0 to 10e5  := 0;
+  signal r_patt2_alt_cntr : integer range 0 to 1     := 0;
   signal r_patt3_cntr     : integer range 0 to 750e3 := 0;
-  signal r_patt3_alt_cntr : integer range 0 to 6    := 0;
-  signal r_patt4_cntr     : integer range 0 to 12e5 := 0;
-  signal r_patt4_alt_cntr : integer range 0 to 3    := 0;
+  signal r_patt3_alt_cntr : integer range 0 to 5     := 0;
+  signal r_patt4_cntr     : integer range 0 to 3e6   := 0;
+  signal r_patt4_alt_cntr : integer range 0 to 3e6   := 0;
   
   -- indicates if pattern should be changed
   signal r_change_pattern : std_logic := '0';
@@ -170,7 +170,7 @@ begin
         r_patt3_alt_cntr <= 0;
       else 
         if r_patt3_cntr = 750e3 then 
-          if r_patt3_alt_cntr < 6 then 
+          if r_patt3_alt_cntr < 5 then 
             r_patt3_alt_cntr <= r_patt3_alt_cntr + 1;
           else 
             r_patt3_alt_cntr <= 0;
@@ -263,7 +263,8 @@ begin
   begin
     if rising_edge(i_clk) then 
       r_patt_en := r_patt1_en & r_patt2_en & r_patt3_en & r_patt4_en;
-      if r_patt_en = "1000" then  -- blink LEDS in cirlce
+      
+      if r_patt_en = "1000" then  -- blink LEDS in circle
         case r_patt1_alt_cntr is 
           when 0 => 
             r_LEDs <= "10001";
@@ -274,26 +275,39 @@ begin
           when 3 => 
             r_LEDs <= "11000";
         end case;
-      elsif r_patt_en = "0100" then      
+        
+      elsif r_patt_en = "0100" then  -- toggle switch opposite LEDS
         case r_patt2_alt_cntr is 
           when 0 => 
             r_LEDs <= "11010";
           when 1 => 
             r_LEDs <= "10101";
+            
+      elsif r_patt_en = "0010" then  -- heart beat LEDS
+        case r_patt3_alt_cntr is 
+          when 0 => 
+            r_LEDs <= "11111";
+          when 1 => 
+            r_LEDs <= "00000";
+          when 2 => 
+            r_LEDs <= "11111";
+          when 3 => 
+            r_LEDs <= "00000";
+          when 4 => 
+            r_LEDs <= "00000";
+          when 5 => 
+            r_LEDs <= "00000"; 
+            
+      elsif r_patt_en = "0001" then -- PWM LEDs
+        r_LEDs <= "11111" when r_patt4_cntr <= r_patt4_alt_cntr else "00000";
+        
       end if;
     end if;
   end process;
   
+  -- output assignment
   o_LEDs <= r_LEDs;
   
-          
-  
-      
-      
-  
-
-
-
 end architecture;
     
     
