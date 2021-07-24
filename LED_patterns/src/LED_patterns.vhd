@@ -51,6 +51,9 @@ architecture rtl of LED_patterns is
   -- FSM
   type t_state is (PATT1, PATT2, PATT3, PATT4);
   signal STATE : t_state;
+  
+  -- output register
+  signal r_LEDs : std_logic_vector(4 downto 0) := "00000";
 
 
 
@@ -151,16 +154,29 @@ begin
     end if;
   end process;
   
-  PATT_DECODE_PROC : process(r_patt1_en, r_patt2_en, r_patt3_en, r_patt4_en)
+  PATT_DECODE_PROC : process(i_clk)
     variable r_patt_en : std_logic_vector(3 downto 0);
   begin
-    r_patt_en := r_patt1_en & r_patt2_en & r_patt3_en & r_patt4_en;
-    if r_patt_en = "1000" then 
-      o_LEDs <= "11111";
-    else 
-      o_LEDs <= "00000";
+    if rising_edge(i_clk) then 
+      r_patt_en := r_patt1_en & r_patt2_en & r_patt3_en & r_patt4_en;
+      if r_patt_en = "1000" then 
+        case r_patt1_alt_cntr is 
+          when 0 => 
+            r_LEDs <= "10001";
+          when 1 => 
+            r_LEDs <= "01001";
+          when 2 => 
+            r_LEDs <= "00100";
+          when 3 => 
+            r_LEDs <= "00010";
+        end case;
+      else 
+        r_LEDs <= "00000";
+      end if;
     end if;
   end process;
+  
+  o_LEDs <= r_LEDs;
   
           
   
