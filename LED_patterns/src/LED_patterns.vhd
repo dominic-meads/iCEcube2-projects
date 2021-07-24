@@ -40,7 +40,7 @@ architecture rtl of LED_patterns is
   signal r_patt4_en : std_logic := '0';
   
   -- pattern counters 
-  signal r_patt1_cntr : integer range 0 to 15e5 := 0;
+  signal r_patt1_cntr : integer range 0 to 12e5 := 0;
   signal r_patt1_alt_cntr : integer range 0 to 3 := 0;
   
   -- indicates if pattern should be changed
@@ -83,7 +83,7 @@ begin
       if r_patt1_en = '0' then 
         r_patt1_cntr <= 0;
       else 
-        if r_patt1_cntr < 15e5 then 
+        if r_patt1_cntr < 12e5 then 
           r_patt1_cntr <= r_patt1_cntr + 1;
         else 
           r_patt1_cntr <= 0;
@@ -99,7 +99,7 @@ begin
       if r_patt1_en = '0' then 
         r_patt1_alt_cntr <= 0;
       else 
-        if r_patt1_cntr = 15e5 then 
+        if r_patt1_cntr = 12e5 then 
           if r_patt1_alt_cntr < 3 then 
             r_patt1_alt_cntr <= r_patt1_alt_cntr + 1;
           else 
@@ -164,11 +164,11 @@ begin
           when 0 => 
             r_LEDs <= "10001";
           when 1 => 
-            r_LEDs <= "01001";
+            r_LEDs <= "10010";
           when 2 => 
-            r_LEDs <= "00100";
+            r_LEDs <= "10100";
           when 3 => 
-            r_LEDs <= "00010";
+            r_LEDs <= "11000";
         end case;
       else 
         r_LEDs <= "00000";
