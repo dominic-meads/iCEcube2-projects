@@ -52,7 +52,7 @@ architecture rtl of LED_patterns is
   -- indicates if pattern should be changed
   signal r_change_pattern : std_logic := '0';
   
-  signal r_clk_cntr : integer range 0 to 24e6 := 0;
+  signal r_clk_cntr : integer range 0 to 36e6 := 0;
  
   -- FSM
   type t_state is (PATT1, PATT2, PATT3, PATT4);
@@ -67,7 +67,7 @@ begin
   DISP_PATT_PROC : process(i_clk)
   begin 
     if rising_edge(i_clk) then 
-      if r_clk_cntr < 24e6 then 
+      if r_clk_cntr < 36e6 then 
         r_clk_cntr <= r_clk_cntr + 1;
       else 
         r_clk_cntr <= 0;
@@ -75,8 +75,8 @@ begin
     end if;
   end process;
   
-  -- activate the "r_change_pattern" flag every 2 seconds
-  r_change_pattern <= '1' when r_clk_cntr = 24e6 else '0';
+  -- activate the "r_change_pattern" flag every 3 seconds
+  r_change_pattern <= '1' when r_clk_cntr = 36e6 else '0';
   
   -- pattern 1 counter keeps each LED on in pattern 1 for 125 ms
   PATT1_CNTR_PROC : process(i_clk)
@@ -282,7 +282,8 @@ begin
             r_LEDs <= "11010";
           when 1 => 
             r_LEDs <= "10101";
-            
+        end case; 
+         
       elsif r_patt_en = "0010" then  -- heart beat LEDS
         case r_patt3_alt_cntr is 
           when 0 => 
@@ -296,11 +297,16 @@ begin
           when 4 => 
             r_LEDs <= "00000";
           when 5 => 
-            r_LEDs <= "00000"; 
-            
-      elsif r_patt_en = "0001" then -- PWM LEDs
-        r_LEDs <= "11111" when r_patt4_cntr <= r_patt4_alt_cntr else "00000";
+            r_LEDs <= "00000";
+        end case; 
         
+      elsif r_patt_en = "0001" then -- PWM LEDs
+        if r_patt4_cntr <= r_patt4_alt_cntr then 
+          r_LEDs <= "11111";
+        else 
+          r_LEDs <= "00000";
+        end if;
+                            
       end if;
     end if;
   end process;
