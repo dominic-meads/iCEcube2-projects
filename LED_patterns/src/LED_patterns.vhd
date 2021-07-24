@@ -40,7 +40,7 @@ architecture rtl of LED_patterns is
   signal r_patt4_en : std_logic := '0';
   
   -- pattern counters 
-  signal r_patt1_cntr : integer range 0 to 750e3 := 0;
+  signal r_patt1_cntr : integer range 0 to 15e5 := 0;
   signal r_patt1_alt_cntr : integer range 0 to 3 := 0;
   
   -- indicates if pattern should be changed
@@ -76,14 +76,14 @@ begin
   
   --------------------------------------------------------------------- POSSIBLY ADD PROCEDURES HERE FOR COUNTERS INSTEAD OF PROCESSES?
   
-  -- pattern 1 counter keeps each LED on in pattern 1 for 62.5 ms
+  -- pattern 1 counter keeps each LED on in pattern 1 for 125 ms
   PATT1_CNTR_PROC : process(i_clk)
   begin 
     if rising_edge(i_clk) then 
       if r_patt1_en = '0' then 
         r_patt1_cntr <= 0;
       else 
-        if r_patt1_cntr < 750e3 then 
+        if r_patt1_cntr < 15e5 then 
           r_patt1_cntr <= r_patt1_cntr + 1;
         else 
           r_patt1_cntr <= 0;
@@ -92,14 +92,14 @@ begin
     end if;
   end process;
   
-    -- pattern 1 alt counter signals when to switch LEDs every 62.5 ms
+    -- pattern 1 alt counter signals when to switch LEDs every 125 ms
   PATT1_ALT_CNTR_PROC : process(i_clk)
   begin 
     if rising_edge(i_clk) then 
       if r_patt1_en = '0' then 
         r_patt1_alt_cntr <= 0;
       else 
-        if r_patt1_cntr = 750e3 then 
+        if r_patt1_cntr = 15e5 then 
           if r_patt1_alt_cntr < 3 then 
             r_patt1_alt_cntr <= r_patt1_alt_cntr + 1;
           else 
