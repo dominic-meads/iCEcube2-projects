@@ -40,8 +40,14 @@ architecture rtl of LED_patterns is
   signal r_patt4_en : std_logic := '0';
   
   -- pattern counters 
-  signal r_patt1_cntr : integer range 0 to 12e5 := 0;
-  signal r_patt1_alt_cntr : integer range 0 to 3 := 0;
+  signal r_patt1_cntr     : integer range 0 to 12e5 := 0;
+  signal r_patt1_alt_cntr : integer range 0 to 3    := 0; 
+  signal r_patt2_cntr     : integer range 0 to 10e5 := 0;
+  signal r_patt2_alt_cntr : integer range 0 to 1    := 0;
+  signal r_patt3_cntr     : integer range 0 to 750e3 := 0;
+  signal r_patt3_alt_cntr : integer range 0 to 6    := 0;
+  signal r_patt4_cntr     : integer range 0 to 12e5 := 0;
+  signal r_patt4_alt_cntr : integer range 0 to 3    := 0;
   
   -- indicates if pattern should be changed
   signal r_change_pattern : std_logic := '0';
@@ -54,8 +60,6 @@ architecture rtl of LED_patterns is
   
   -- output register
   signal r_LEDs : std_logic_vector(4 downto 0) := "00000";
-
-
 
 begin 
 
@@ -73,8 +77,6 @@ begin
   
   -- activate the "r_change_pattern" flag every 2 seconds
   r_change_pattern <= '1' when r_clk_cntr = 24e6 else '0';
-  
-  --------------------------------------------------------------------- POSSIBLY ADD PROCEDURES HERE FOR COUNTERS INSTEAD OF PROCESSES?
   
   -- pattern 1 counter keeps each LED on in pattern 1 for 125 ms
   PATT1_CNTR_PROC : process(i_clk)
@@ -104,6 +106,108 @@ begin
             r_patt1_alt_cntr <= r_patt1_alt_cntr + 1;
           else 
             r_patt1_alt_cntr <= 0;
+          end if;
+        end if;
+      end if;
+    end if;
+  end process;
+  
+  -- pattern 2 counter keeps each LED on in pattern 2 for 83.333 ms
+  PATT2_CNTR_PROC : process(i_clk)
+  begin 
+    if rising_edge(i_clk) then 
+      if r_patt2_en = '0' then 
+        r_patt2_cntr <= 0;
+      else 
+        if r_patt2_cntr < 10e5 then 
+          r_patt2_cntr <= r_patt2_cntr + 1;
+        else 
+          r_patt2_cntr <= 0;
+        end if;
+      end if;
+    end if;
+  end process;
+  
+  -- pattern 2 alt counter signals when to switch LEDs every 83.33 ms
+  PATT2_ALT_CNTR_PROC : process(i_clk)
+  begin 
+    if rising_edge(i_clk) then 
+      if r_patt2_en = '0' then 
+        r_patt2_alt_cntr <= 0;
+      else 
+        if r_patt2_cntr = 12e5 then 
+          if r_patt2_alt_cntr < 1 then 
+            r_patt2_alt_cntr <= r_patt2_alt_cntr + 1;
+          else 
+            r_patt2_alt_cntr <= 0;
+          end if;
+        end if;
+      end if;
+    end if;
+  end process;
+  
+  -- pattern 3 counter keeps each LED on in pattern 2 for 62.5 ms
+  PATT3_CNTR_PROC : process(i_clk)
+  begin 
+    if rising_edge(i_clk) then 
+      if r_patt3_en = '0' then 
+        r_patt2_cntr <= 0;
+      else 
+        if r_patt3_cntr < 750e3 then 
+          r_patt3_cntr <= r_patt3_cntr + 1;
+        else 
+          r_patt3_cntr <= 0;
+        end if;
+      end if;
+    end if;
+  end process;
+
+  -- pattern 3 alt counter signals when to switch LEDs every 62.5 ms, but switching only lasts two times, like a heart beat
+  PATT3_ALT_CNTR_PROC : process(i_clk)
+  begin 
+    if rising_edge(i_clk) then 
+      if r_patt3_en = '0' then 
+        r_patt3_alt_cntr <= 0;
+      else 
+        if r_patt3_cntr = 750e3 then 
+          if r_patt3_alt_cntr < 6 then 
+            r_patt3_alt_cntr <= r_patt3_alt_cntr + 1;
+          else 
+            r_patt3_alt_cntr <= 0;
+          end if;
+        end if;
+      end if;
+    end if;
+  end process;
+  
+  -- creates PWM with a switching frequency of 100 Hz
+  PATT4_PWM_PROC : process(i_clk)
+  begin 
+    if rising_edge(i_clk) then 
+      if r_patt4_en = '0' then 
+        r_patt4_cntr <= 0;
+      else 
+        if r_patt4_cntr < 3e6 then 
+          r_patt4_cntr <= r_patt4_cntr + 1;
+        else 
+          r_patt4_cntr <= 0;
+        end if;
+      end if;
+    end if;
+  end process;
+  
+  -- increments duty cycle in PWM (in 6 equispaced increments) to increase brightness in LEDs
+  PATT4_DUTY_CYCLE_INCR_PROC : process(i_clk)
+  begin 
+    if rising_edge(i_clk) then 
+      if r_patt4_en = '0' then 
+        r_patt4_alt_cntr <= 0;
+      else 
+        if r_patt4_cntr = 3e6 then 
+          if r_patt4_alt_cntr < 3e5 then 
+            r_patt4_alt_cntr <= r_patt4_alt_cntr + 500e3;
+          else 
+            r_patt4_alt_cntr <= 0;
           end if;
         end if;
       end if;
@@ -159,7 +263,7 @@ begin
   begin
     if rising_edge(i_clk) then 
       r_patt_en := r_patt1_en & r_patt2_en & r_patt3_en & r_patt4_en;
-      if r_patt_en = "1000" then 
+      if r_patt_en = "1000" then  -- blink LEDS in cirlce
         case r_patt1_alt_cntr is 
           when 0 => 
             r_LEDs <= "10001";
@@ -170,8 +274,12 @@ begin
           when 3 => 
             r_LEDs <= "11000";
         end case;
-      else 
-        r_LEDs <= "00000";
+      elsif r_patt_en = "0100" then      
+        case r_patt2_alt_cntr is 
+          when 0 => 
+            r_LEDs <= "11010";
+          when 1 => 
+            r_LEDs <= "10101";
       end if;
     end if;
   end process;
