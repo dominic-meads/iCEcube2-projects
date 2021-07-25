@@ -40,14 +40,16 @@ architecture rtl of LED_patterns is
   signal r_patt4_en : std_logic := '0';
   
   -- pattern counters 
-  signal r_patt1_cntr     : integer range 0 to 1e6 := 0;
-  signal r_patt1_alt_cntr : integer range 0 to 3   := 0; 
-  signal r_patt2_cntr     : integer range 0 to 1e6 := 0;
-  signal r_patt2_alt_cntr : integer range 0 to 1   := 0;
-  signal r_patt3_cntr     : integer range 0 to 2e6 := 0;
-  signal r_patt3_alt_cntr : integer range 0 to 5   := 0;
-  signal r_patt4_cntr     : integer range 0 to 2e5 := 0;
-  signal r_patt4_alt_cntr : integer range 0 to 2e5 := 0;
+  signal r_patt1_cntr      : integer range 0 to 1e6   := 0;
+  signal r_patt1_light_LED : integer range 0 to 3     := 0; 
+  signal r_patt2_cntr      : integer range 0 to 2e6   := 0;
+  signal r_patt3_cntr      : integer range 0 to 2e6   := 0;
+  signal r_patt3_alt_cntr  : integer range 0 to 5     := 0;
+  signal r_patt4_incr_cntr : integer range 0 to 12e5  := 0;
+  signal r_patt4_duty      : integer range 0 to 120e3 := 0;
+  
+  -- max pwm duty cycle counter value of patt4
+  constant r_patt4_max_duty : integer range 0 to 120e3 := 120e3;
   
   -- indicates if pattern should be changed
   signal r_change_pattern : std_logic := '0';
@@ -99,13 +101,13 @@ begin
   begin 
     if rising_edge(i_clk) then 
       if r_patt1_en = '0' then 
-        r_patt1_alt_cntr <= 0;
+        r_patt1_light_LED <= 0;
       else 
         if r_patt1_cntr = 1e6 then 
-          if r_patt1_alt_cntr < 3 then 
-            r_patt1_alt_cntr <= r_patt1_alt_cntr + 1;
+          if r_patt1_light_LED < 3 then 
+            r_patt1_light_LED <= r_patt1_light_LED + 1;
           else 
-            r_patt1_alt_cntr <= 0;
+            r_patt1_light_LED <= 0;
           end if;
         end if;
       end if;
@@ -119,28 +121,10 @@ begin
       if r_patt2_en = '0' then 
         r_patt2_cntr <= 0;
       else 
-        if r_patt2_cntr < 1e6 then 
+        if r_patt2_cntr < 2e6 then 
           r_patt2_cntr <= r_patt2_cntr + 1;
         else 
           r_patt2_cntr <= 0;
-        end if;
-      end if;
-    end if;
-  end process;
-  
-  -- pattern 2 alt counter signals when to switch LEDs every 83.33 ms
-  PATT2_ALT_CNTR_PROC : process(i_clk)
-  begin 
-    if rising_edge(i_clk) then 
-      if r_patt2_en = '0' then 
-        r_patt2_alt_cntr <= 0;
-      else 
-        if r_patt2_cntr = 1e6 then 
-          if r_patt2_alt_cntr < 1 then 
-            r_patt2_alt_cntr <= r_patt2_alt_cntr + 1;
-          else 
-            r_patt2_alt_cntr <= 0;
-          end if;
         end if;
       end if;
     end if;
@@ -180,34 +164,37 @@ begin
     end if;
   end process;
   
-  -- creates PWM with a switching frequency of 100 Hz
-  PATT4_PWM_PROC : process(i_clk)
+  -- controls a signal that is pulses (every 10 ms) when the duty cycle should be increased
+  PATT4_INCR_DUTY_PROC : process(i_clk)
   begin 
     if rising_edge(i_clk) then 
       if r_patt4_en = '0' then 
-        r_patt4_cntr <= 0;
+        r_patt4_incr_cntr <= 0;
+        r_patt4_incr_duty <= '0';
       else 
-        if r_patt4_cntr < 2e5 then 
-          r_patt4_cntr <= r_patt4_cntr + 1;
+        if r_patt4_incr_cntr < 12e5 then 
+          r_patt4_incr_cntr <= r_patt4_incr_cntr + 1;
+          r_patt4_incr_duty <= '0';
         else 
-          r_patt4_cntr <= 0;
+          r_patt4_incr_cntr <= 0;
+          r_patt4_incr_duty <= '1';
         end if;
       end if;
     end if;
   end process;
   
   -- increments duty cycle in PWM (in 10 equispaced increments) to increase brightness in LEDs
-  PATT4_DUTY_CYCLE_INCR_PROC : process(i_clk)
+  PATT4_PWM_PROC : process(i_clk)
   begin 
     if rising_edge(i_clk) then 
       if r_patt4_en = '0' then 
-        r_patt4_alt_cntr <= 0;
+        r_patt4_duty <= 0;
       else 
-        if r_patt4_cntr = 2e5 then 
-          if r_patt4_alt_cntr < 2e5 then 
-            r_patt4_alt_cntr <= r_patt4_alt_cntr + 2000;
+        if r_patt4_incr_duty = '1' then 
+          if r_patt4_duty < 120e3 then 
+            r_patt4_duty <= r_patt4_duty + 1200;
           else 
-            r_patt4_alt_cntr <= 0;
+            r_patt4_duty <= 0;
           end if;
         end if;
       end if;
@@ -265,7 +252,7 @@ begin
       r_patt_en := r_patt1_en & r_patt2_en & r_patt3_en & r_patt4_en;
       
       if r_patt_en = "1000" then  -- blink LEDS in circle
-        case r_patt1_alt_cntr is 
+        case r_patt1_light_LED is 
           when 0 => 
             r_LEDs <= "00001";
           when 1 => 
@@ -276,13 +263,12 @@ begin
             r_LEDs <= "01000";
         end case;
         
-      elsif r_patt_en = "0100" then  -- toggle switch opposite LEDS
-        case r_patt2_alt_cntr is 
-          when 0 => 
-            r_LEDs <= "10101";
-          when 1 => 
-            r_LEDs <= "11010";
-        end case; 
+      elsif r_patt_en = "0100" then  -- toggle switch opposite LEDS halfway through r_patt2_cntr
+        if r_patt2_cntr <= 1e6 then  
+          r_LEDs <= "10101";
+        else
+          r_LEDs <= "11010";
+        end if; 
          
       elsif r_patt_en = "0010" then  -- heart beat LEDS
         case r_patt3_alt_cntr is 
@@ -301,7 +287,7 @@ begin
         end case; 
         
       elsif r_patt_en = "0001" then -- PWM LEDs
-        if r_patt4_cntr <= r_patt4_alt_cntr then 
+        if r_patt4_duty <= r_patt4_max_duty then 
           r_LEDs <= "11111";
         else 
           r_LEDs <= "00000";
