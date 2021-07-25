@@ -40,17 +40,14 @@ architecture rtl of LED_patterns is
   signal r_patt4_en : std_logic := '0';
   
   -- pattern counters 
-  signal r_patt1_cntr      : integer range 0 to 1e6   := 0;
-  signal r_patt1_light_LED : integer range 0 to 3     := 0; 
-  signal r_patt2_cntr      : integer range 0 to 2e6   := 0;
-  signal r_patt3_cntr      : integer range 0 to 2e6   := 0;
-  signal r_patt3_alt_cntr  : integer range 0 to 5     := 0;
-  signal r_patt4_incr_cntr : integer range 0 to 12e5  := 0; 
-  signal r_patt4_duty      : integer range 0 to 120e3 := 0;
-    signal r_patt4_incr_duty : std_logic := '0';
-  
-  -- max pwm duty cycle counter value of patt4
-  constant r_patt4_max_duty : integer range 0 to 120e3 := 120e3;
+  signal r_patt1_cntr      : integer range 0 to 1e6 := 0;
+  signal r_patt1_light_LED : integer range 0 to 3   := 0; 
+  signal r_patt2_cntr      : integer range 0 to 2e6 := 0;
+  signal r_patt3_cntr      : integer range 0 to 2e6 := 0;
+  signal r_patt3_alt_cntr  : integer range 0 to 5   := 0;
+  signal r_patt4_duty      : integer range 0 to 1e5 := 0;
+  signal r_patt4_cntr      : integer range 0 to 1e5 := 0;
+  signal r_patt4_incr_duty : std_logic := '0';
   
   -- indicates if pattern should be changed
   signal r_change_pattern : std_logic := '0';
@@ -165,35 +162,32 @@ begin
     end if;
   end process;
   
-  -- controls a signal that is pulses (every 10 ms) when the duty cycle should be increased
-  PATT4_INCR_DUTY_PROC : process(i_clk)
+  -- creates PWM with a switching frequency of 100 Hz
+  PATT4_PWM_PROC : process(i_clk)
   begin 
     if rising_edge(i_clk) then 
       if r_patt4_en = '0' then 
-        r_patt4_incr_cntr <= 0;
-        r_patt4_incr_duty <= '0';
+        r_patt4_cntr <= 0;
       else 
-        if r_patt4_incr_cntr < 12e5 then 
-          r_patt4_incr_cntr <= r_patt4_incr_cntr + 1;
-          r_patt4_incr_duty <= '0';
+        if r_patt4_cntr < 1e5 then 
+          r_patt4_cntr <= r_patt4_cntr + 1;
         else 
-          r_patt4_incr_cntr <= 0;
-          r_patt4_incr_duty <= '1';
+          r_patt4_cntr <= 0;
         end if;
       end if;
     end if;
   end process;
-  
+
   -- increments duty cycle in PWM (in 10 equispaced increments) to increase brightness in LEDs
-  PATT4_PWM_PROC : process(i_clk)
+  PATT4_DUTY_CYCLE_INCR_PROC : process(i_clk)
   begin 
     if rising_edge(i_clk) then 
       if r_patt4_en = '0' then 
         r_patt4_duty <= 0;
       else 
-        if r_patt4_incr_duty = '1' then 
-          if r_patt4_duty < 120e3 then 
-            r_patt4_duty <= r_patt4_duty + 1200;
+        if r_patt4_cntr = 1e5 then 
+          if r_patt4_duty < 1e5 then 
+            r_patt4_duty <= r_patt4_duty + 1000;
           else 
             r_patt4_duty <= 0;
           end if;
@@ -288,7 +282,7 @@ begin
         end case; 
         
       elsif r_patt_en = "0001" then -- PWM LEDs
-        if r_patt4_duty <= r_patt4_max_duty then 
+        if r_patt4_cntr <= r_patt4_duty then 
           r_LEDs <= "11111";
         else 
           r_LEDs <= "00000";
