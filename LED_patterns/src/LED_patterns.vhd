@@ -45,8 +45,9 @@ architecture rtl of LED_patterns is
   signal r_patt2_cntr      : integer range 0 to 2e6   := 0;
   signal r_patt3_cntr      : integer range 0 to 2e6   := 0;
   signal r_patt3_alt_cntr  : integer range 0 to 5     := 0;
-  signal r_patt4_incr_cntr : integer range 0 to 12e5  := 0;
+  signal r_patt4_incr_cntr : integer range 0 to 12e5  := 0; 
   signal r_patt4_duty      : integer range 0 to 120e3 := 0;
+    signal r_patt4_incr_duty : std_logic := '0';
   
   -- max pwm duty cycle counter value of patt4
   constant r_patt4_max_duty : integer range 0 to 120e3 := 120e3;
