@@ -1,0 +1,20 @@
+UART# ##############################################################################
+
+# iCEcube PCF
+
+# Version:            2020.12.27943
+
+# File Generated:     Feb 8 2025 11:43:31
+
+# Family & Device:    iCE40HX1K
+
+# Package:            TQ144
+
+# ##############################################################################
+
+###IOSet List 5
+set_io clk 21 
+set_io rst_n 112
+set_io tx_complete 95
+set_io tx_out 8
+set_io tx_en 113
