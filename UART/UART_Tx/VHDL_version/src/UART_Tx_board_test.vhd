@@ -1,9 +1,6 @@
--- UART Transmitter and Reciever
+-- UART Transmitter test
 --
--- Takes in 8 bit vector and transmits over UART when "tx_en" is high. 
--- Transmission is complete when "tx_complete" goes high
--- Receives Serial data from UART stream when "rx_en" is high
--- Receive is complete when "rx_complete" goes high
+-- Continously transmitts ASCII 'A' when "tx_en" is high
 -- 
 -- UART Settings:
 -- 9600 Baud
@@ -17,7 +14,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity UART_top is 
+entity UART_Tx_board_test is 
   port (
     clk         : in std_logic;  -- 12 MHz clk
     rst_n       : in std_logic;
@@ -27,7 +24,7 @@ entity UART_top is
   );
 end entity;
 
-architecture rtl of UART_top is 
+architecture rtl of UART_Tx_board_test is 
 
   signal r_tx_data : std_logic_vector(7 downto 0) := x"41"; -- default tx value of ascii 'A'
 
